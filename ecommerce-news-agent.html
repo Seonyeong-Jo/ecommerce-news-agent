@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>eCommerce Personalization News Agent</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #f5f3ee;
+      --surface: #ffffff;
+      --surface2: #f0ede6;
+      --border: #e2ddd4;
+      --accent: #1a1a2e;
+      --accent2: #e63946;
+      --highlight: #f4a261;
+      --text: #1a1a2e;
+      --muted: #8a8070;
+      --green: #2d6a4f;
+      --tag-bg: #1a1a2e;
+      --tag-color: #f5f3ee;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+    }
+
+    /* TOP BAR */
+    .topbar {
+      background: var(--accent);
+      padding: 12px 40px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .topbar-logo {
+      font-family: 'Syne', sans-serif; font-weight: 800; font-size: 15px;
+      color: #fff; letter-spacing: 3px; text-transform: uppercase;
+    }
+    .topbar-badge {
+      font-family: 'JetBrains Mono', monospace; font-size: 11px;
+      color: var(--highlight); letter-spacing: 1px;
+    }
+
+    /* HERO */
+    .hero {
+      background: var(--accent);
+      padding: 48px 40px 60px;
+      position: relative; overflow: hidden;
+    }
+    .hero::after {
+      content: 'NEWS';
+      position: absolute; right: -20px; bottom: -30px;
+      font-family: 'Syne', sans-serif; font-weight: 800; font-size: 160px;
+      color: rgba(255,255,255,0.03); line-height: 1; pointer-events: none;
+      letter-spacing: -5px;
+    }
+    .hero-tag {
+      display: inline-block;
+      background: var(--accent2); color: #fff;
+      font-family: 'JetBrains Mono', monospace; font-size: 11px;
+      padding: 4px 12px; border-radius: 2px; letter-spacing: 1.5px;
+      text-transform: uppercase; margin-bottom: 20px;
+    }
+    h1 {
+      font-family: 'Syne', sans-serif; font-weight: 800;
+      font-size: 46px; color: #fff; line-height: 1.05;
+      letter-spacing: -1px; margin-bottom: 12px;
+    }
+    h1 em { color: var(--highlight); font-style: normal; }
+    .hero-sub {
+      color: rgba(255,255,255,0.45); font-size: 14px; line-height: 1.6;
+      max-width: 500px;
+    }
+
+    /* STATS */
+    .stats-strip {
+      background: var(--highlight);
+      padding: 14px 40px;
+      display: flex; gap: 40px; flex-wrap: wrap;
+    }
+    .stat { display: flex; align-items: center; gap: 10px; }
+    .stat-val { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 22px; color: var(--accent); }
+    .stat-lbl { font-size: 12px; color: rgba(26,26,46,0.6); font-weight: 500; }
+
+    /* MAIN LAYOUT */
+    .main { max-width: 1100px; margin: 0 auto; padding: 40px 40px 80px; }
+
+    /* CONTROL PANEL */
+    .control-panel {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 16px; padding: 28px; margin-bottom: 32px;
+      box-shadow: 0 2px 12px rgba(26,26,46,0.06);
+    }
+    .control-header {
+      display: flex; align-items: center; gap: 10px; margin-bottom: 20px;
+    }
+    .control-label {
+      font-family: 'JetBrains Mono', monospace; font-size: 11px;
+      text-transform: uppercase; letter-spacing: 2px; color: var(--muted);
+    }
+    .control-line { flex: 1; height: 1px; background: var(--border); }
+
+    /* KEYWORD CHIPS */
+    .keyword-wrap { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+    .kw-chip {
+      cursor: pointer; padding: 8px 16px; border-radius: 24px;
+      border: 1.5px solid var(--border); background: var(--surface2);
+      color: var(--muted); font-size: 13px; font-weight: 500;
+      transition: all 0.18s;
+    }
+    .kw-chip:hover { border-color: var(--accent); color: var(--accent); }
+    .kw-chip.active {
+      background: var(--accent); border-color: var(--accent);
+      color: #fff;
+    }
+    .kw-chip.selected-extra {
+      background: var(--accent2); border-color: var(--accent2); color: #fff;
+    }
+
+    /* FILTERS ROW */
+    .filters-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 20px; }
+    .filter-group { display: flex; align-items: center; gap: 6px; }
+    .filter-lbl { font-size: 12px; color: var(--muted); font-weight: 500; }
+    .filter-select {
+      background: var(--surface2); border: 1px solid var(--border);
+      color: var(--text); padding: 7px 12px; border-radius: 8px;
+      font-family: 'DM Sans', sans-serif; font-size: 13px; outline: none; cursor: pointer;
+    }
+    .filter-select:focus { border-color: var(--accent); }
+
+    /* CUSTOM KEYWORD */
+    .custom-row { display: flex; gap: 10px; margin-bottom: 20px; }
+    .custom-kw-input {
+      flex: 1; background: var(--surface2); border: 1.5px solid var(--border);
+      color: var(--text); padding: 10px 16px; border-radius: 10px;
+      font-family: 'DM Sans', sans-serif; font-size: 14px; outline: none;
+      transition: border-color 0.2s;
+    }
+    .custom-kw-input:focus { border-color: var(--accent); }
+    .custom-kw-input::placeholder { color: var(--muted); }
+    .add-kw-btn {
+      padding: 10px 18px; background: var(--surface2); border: 1.5px solid var(--border);
+      border-radius: 10px; cursor: pointer; font-size: 18px;
+      transition: all 0.18s; color: var(--muted);
+    }
+    .add-kw-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* RUN BUTTON */
+    .run-btn {
+      width: 100%; padding: 16px;
+      background: var(--accent); border: none; border-radius: 12px;
+      color: #fff; font-family: 'Syne', sans-serif; font-weight: 700;
+      font-size: 18px; letter-spacing: 1px; cursor: pointer;
+      transition: all 0.2s; position: relative; overflow: hidden;
+    }
+    .run-btn:hover { background: #2d2d4e; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(26,26,46,0.2); }
+    .run-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    /* STATUS */
+    .status-bar {
+      display: none; align-items: center; gap: 12px;
+      background: var(--accent); color: #fff;
+      padding: 14px 20px; border-radius: 10px; margin-bottom: 24px;
+      font-family: 'JetBrains Mono', monospace; font-size: 13px;
+    }
+    .status-bar.show { display: flex; }
+    .s-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--highlight); animation: blink 0.8s infinite;
+      flex-shrink: 0;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+    /* ARTICLE GRID */
+    .articles-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
+
+    /* ARTICLE CARD */
+    .article-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 14px; overflow: hidden;
+      transition: all 0.22s; animation: fadeUp 0.4s ease both;
+      display: flex; flex-direction: column;
+    }
+    .article-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 28px rgba(26,26,46,0.1);
+      border-color: var(--accent);
+    }
+    @keyframes fadeUp { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
+
+    .card-top-bar { height: 4px; background: var(--accent); }
+    .card-top-bar.red { background: var(--accent2); }
+    .card-top-bar.orange { background: var(--highlight); }
+    .card-top-bar.green { background: #2d9e6b; }
+
+    .card-body { padding: 20px 20px 16px; flex: 1; display: flex; flex-direction: column; }
+
+    .card-meta-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .source-tag {
+      font-family: 'JetBrains Mono', monospace; font-size: 10px;
+      padding: 3px 8px; border-radius: 4px;
+      background: var(--tag-bg); color: var(--tag-color);
+      text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .card-date { font-size: 11px; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+
+    .card-title {
+      font-family: 'Syne', sans-serif; font-weight: 700;
+      font-size: 16px; line-height: 1.35; color: var(--text);
+      margin-bottom: 10px; flex: 1;
+    }
+    .card-summary { font-size: 13px; line-height: 1.65; color: var(--muted); margin-bottom: 14px; }
+
+    .card-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+    .card-tag {
+      font-size: 11px; padding: 3px 10px; border-radius: 20px;
+      background: var(--surface2); color: var(--muted);
+      border: 1px solid var(--border); font-weight: 500;
+    }
+    .card-tag.match { background: rgba(230,57,70,0.08); border-color: rgba(230,57,70,0.3); color: var(--accent2); }
+
+    .card-footer { display: flex; justify-content: space-between; align-items: center; padding: 12px 20px; border-top: 1px solid var(--border); background: var(--surface2); }
+    .relevance { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted); }
+    .relevance span { color: var(--green); font-weight: 600; }
+    .read-link {
+      font-size: 12px; font-weight: 600; color: var(--accent2);
+      text-decoration: none; display: flex; align-items: center; gap: 4px;
+    }
+    .read-link:hover { text-decoration: underline; }
+
+    /* SUMMARY PANEL */
+    .summary-panel {
+      display: none; background: var(--accent); color: #fff;
+      border-radius: 14px; padding: 28px; margin-bottom: 28px;
+    }
+    .summary-panel.show { display: block; }
+    .sp-title {
+      font-family: 'Syne', sans-serif; font-weight: 800; font-size: 20px;
+      color: var(--highlight); margin-bottom: 14px; letter-spacing: 0.5px;
+    }
+    .sp-text { font-size: 14px; line-height: 1.75; color: rgba(255,255,255,0.75); }
+    .trend-chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
+    .trend-chip {
+      padding: 5px 14px; border-radius: 20px;
+      border: 1px solid rgba(244,162,97,0.4);
+      color: var(--highlight); font-size: 12px; font-weight: 500;
+    }
+
+    /* SECTION HEADER */
+    .section-header {
+      display: flex; align-items: center; gap: 14px; margin-bottom: 20px;
+    }
+    .section-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 20px; }
+    .section-count {
+      font-family: 'JetBrains Mono', monospace; font-size: 12px;
+      color: #fff; background: var(--accent2); padding: 2px 10px; border-radius: 20px;
+    }
+    .section-line { flex: 1; height: 1px; background: var(--border); }
+
+    /* EMPTY */
+    .empty-state { text-align: center; padding: 60px 20px; }
+    .empty-icon { font-size: 48px; margin-bottom: 16px; }
+    .empty-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 20px; color: var(--muted); margin-bottom: 8px; }
+    .empty-sub { font-size: 13px; color: #b0a898; }
+  </style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-logo">News Agent</div>
+  <div class="topbar-badge">● POWERED BY CLAUDE AI</div>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-tag">실시간 뉴스 크롤러</div>
+  <h1>eCommerce<br><em>Personalization</em><br>News Agent</h1>
+  <p class="hero-sub">Claude AI 웹 검색으로 전 세계 최신 뉴스를 실시간 수집·분석합니다.</p>
+</div>
+
+<!-- STATS STRIP -->
+<div class="stats-strip">
+  <div class="stat"><div class="stat-val" id="s-total">0</div><div class="stat-lbl">수집된 기사</div></div>
+  <div class="stat"><div class="stat-val" id="s-sources">0</div><div class="stat-lbl">출처 수</div></div>
+  <div class="stat"><div class="stat-val" id="s-kw">-</div><div class="stat-lbl">검색 키워드</div></div>
+  <div class="stat"><div class="stat-val" id="s-updated">-</div><div class="stat-lbl">업데이트</div></div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- CONTROL PANEL -->
+  <div class="control-panel">
+    <div class="control-header">
+      <div class="control-label">// 키워드 설정</div>
+      <div class="control-line"></div>
+    </div>
+
+    <div class="keyword-wrap" id="kw-wrap"></div>
+
+    <div class="custom-row">
+      <input class="custom-kw-input" id="custom-kw" placeholder="커스텀 키워드 추가 (예: AI recommendation engine)" />
+      <button class="add-kw-btn" onclick="addCustomKw()" title="추가">＋</button>
+    </div>
+
+    <div class="control-header" style="margin-bottom:14px">
+      <div class="control-label">// 필터</div>
+      <div class="control-line"></div>
+    </div>
+
+    <div class="filters-row">
+      <div class="filter-group">
+        <span class="filter-lbl">기간</span>
+        <select class="filter-select" id="f-period">
+          <option value="week">최근 1주일</option>
+          <option value="month" selected>최근 1개월</option>
+          <option value="quarter">최근 3개월</option>
+          <option value="year">최근 1년</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <span class="filter-lbl">언어</span>
+        <select class="filter-select" id="f-lang">
+          <option value="en" selected>English</option>
+          <option value="ko">한국어</option>
+          <option value="both">둘 다</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <span class="filter-lbl">기사 수</span>
+        <select class="filter-select" id="f-count">
+          <option value="6">6개</option>
+          <option value="9" selected>9개</option>
+          <option value="12">12개</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <span class="filter-lbl">정렬</span>
+        <select class="filter-select" id="f-sort">
+          <option value="recent">최신순</option>
+          <option value="relevance">관련성순</option>
+        </select>
+      </div>
+    </div>
+
+    <button class="run-btn" id="run-btn" onclick="runAgent()">
+      🔍 뉴스 크롤링 시작
+    </button>
+  </div>
+
+  <!-- STATUS -->
+  <div class="status-bar" id="status-bar">
+    <div class="s-dot"></div>
+    <span id="status-text">Claude가 뉴스를 검색 중...</span>
+  </div>
+
+  <!-- SUMMARY -->
+  <div class="summary-panel" id="summary-panel">
+    <div class="sp-title">📊 트렌드 종합 분석</div>
+    <div class="sp-text" id="sp-text"></div>
+    <div class="trend-chips" id="trend-chips"></div>
+  </div>
+
+  <!-- RESULTS -->
+  <div id="results-area">
+    <div class="empty-state">
+      <div class="empty-icon">📰</div>
+      <div class="empty-title">키워드를 선택하고 크롤링을 시작하세요</div>
+      <div class="empty-sub">Claude AI가 실시간으로 eCommerce Personalization 관련 뉴스를 수집합니다</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const KEYWORDS = [
+  { id: "main",    label: "eCommerce Personalization", default: true },
+  { id: "ai",      label: "AI Recommendation Engine" },
+  { id: "hyper",   label: "Hyper-Personalization" },
+  { id: "retail",  label: "Retail AI" },
+  { id: "cx",      label: "Customer Experience AI" },
+  { id: "cdp",     label: "Customer Data Platform" },
+  { id: "amazon",  label: "Amazon Personalize" },
+  { id: "shopify", label: "Shopify Personalization" },
+];
+
+let activeKws = new Set(["main"]);
+let customKws = [];
+let articles = [];
+
+// Build keyword chips
+const kwWrap = document.getElementById("kw-wrap");
+KEYWORDS.forEach(kw => {
+  const chip = document.createElement("button");
+  chip.className = "kw-chip" + (kw.default ? " active" : "");
+  chip.textContent = kw.label;
+  chip.dataset.id = kw.id;
+  chip.onclick = () => toggleKw(chip, kw.id);
+  kwWrap.appendChild(chip);
+});
+
+function toggleKw(chip, id) {
+  if (activeKws.has(id)) {
+    if (activeKws.size === 1) return; // 최소 1개
+    activeKws.delete(id);
+    chip.classList.remove("active");
+  } else {
+    activeKws.add(id);
+    chip.classList.add("active");
+  }
+}
+
+function addCustomKw() {
+  const input = document.getElementById("custom-kw");
+  const val = input.value.trim();
+  if (!val) return;
+
+  const id = "custom_" + Date.now();
+  customKws.push({ id, label: val });
+  activeKws.add(id);
+
+  const chip = document.createElement("button");
+  chip.className = "kw-chip selected-extra";
+  chip.textContent = val;
+  chip.dataset.id = id;
+  chip.onclick = () => {
+    activeKws.delete(id);
+    chip.remove();
+    customKws = customKws.filter(k => k.id !== id);
+  };
+  kwWrap.appendChild(chip);
+  input.value = "";
+}
+
+document.getElementById("custom-kw").addEventListener("keydown", e => {
+  if (e.key === "Enter") addCustomKw();
+});
+
+function setStatus(msg) {
+  const bar = document.getElementById("status-bar");
+  bar.classList.add("show");
+  document.getElementById("status-text").textContent = msg;
+}
+function hideStatus() {
+  document.getElementById("status-bar").classList.remove("show");
+}
+
+function getBarColor(i) {
+  const colors = ["", "red", "orange", "green"];
+  return colors[i % colors.length];
+}
+
+function renderArticles(data) {
+  articles = data.articles || [];
+  const area = document.getElementById("results-area");
+
+  // Update stats
+  const sources = [...new Set(articles.map(a => a.source))];
+  document.getElementById("s-total").textContent = articles.length;
+  document.getElementById("s-sources").textContent = sources.length;
+  document.getElementById("s-updated").textContent = new Date().toLocaleTimeString("ko-KR");
+
+  // Summary
+  if (data.summary) {
+    const sp = document.getElementById("summary-panel");
+    sp.classList.add("show");
+    document.getElementById("sp-text").textContent = data.summary;
+    const chips = document.getElementById("trend-chips");
+    chips.innerHTML = '';
+    (data.trends || []).forEach(t => {
+      chips.innerHTML += `<span class="trend-chip"># ${t}</span>`;
+    });
+  }
+
+  if (articles.length === 0) {
+    area.innerHTML = `<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">검색 결과가 없습니다</div></div>`;
+    return;
+  }
+
+  // Sort
+  const sort = document.getElementById("f-sort").value;
+  const sorted = sort === "relevance"
+    ? [...articles].sort((a, b) => (b.relevance || 0) - (a.relevance || 0))
+    : articles;
+
+  area.innerHTML = `
+    <div class="section-header">
+      <div class="section-title">수집된 뉴스</div>
+      <div class="section-count">${sorted.length}개</div>
+      <div class="section-line"></div>
+    </div>
+    <div class="articles-grid" id="grid"></div>
+  `;
+
+  const grid = document.getElementById("grid");
+  sorted.forEach((art, i) => {
+    const card = document.createElement("div");
+    card.className = "article-card";
+    card.style.animationDelay = `${i * 55}ms`;
+
+    const tagsHtml = (art.tags || []).map(t => {
+      const isMatch = activeKws.size > 0 && [...activeKws].some(k => {
+        const label = [...KEYWORDS, ...customKws].find(kw => kw.id === k)?.label || k;
+        return t.toLowerCase().includes(label.toLowerCase().split(" ")[0]);
+      });
+      return `<span class="card-tag${isMatch ? " match" : ""}">${t}</span>`;
+    }).join('');
+
+    card.innerHTML = `
+      <div class="card-top-bar ${getBarColor(i)}"></div>
+      <div class="card-body">
+        <div class="card-meta-top">
+          <span class="source-tag">${art.source}</span>
+          <span class="card-date">${art.date}</span>
+        </div>
+        <div class="card-title">${art.title}</div>
+        <div class="card-summary">${art.summary}</div>
+        <div class="card-tags">${tagsHtml}</div>
+      </div>
+      <div class="card-footer">
+        <div class="relevance">관련도: <span>${art.relevance || 90}%</span></div>
+        ${art.url ? `<a class="read-link" href="${art.url}" target="_blank" rel="noopener">읽기 →</a>` : '<span class="read-link" style="color:var(--muted)">링크 없음</span>'}
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+async function runAgent() {
+  const btn = document.getElementById("run-btn");
+  btn.disabled = true;
+  document.getElementById("summary-panel").classList.remove("show");
+  document.getElementById("results-area").innerHTML = '';
+
+  // Build keyword list
+  const allKwLabels = [...activeKws].map(id => {
+    return [...KEYWORDS, ...customKws].find(k => k.id === id)?.label || id;
+  });
+  document.getElementById("s-kw").textContent = allKwLabels[0];
+
+  const period = document.getElementById("f-period").value;
+  const lang = document.getElementById("f-lang").value;
+  const count = parseInt(document.getElementById("f-count").value);
+
+  const periodLabel = { week: "1주일", month: "1개월", quarter: "3개월", year: "1년" }[period];
+  const langLabel = { en: "영어 뉴스", ko: "한국어 뉴스", both: "영어+한국어 뉴스" }[lang];
+
+  setStatus(`Claude가 "${allKwLabels.join(', ')}" 관련 ${langLabel}를 검색 중...`);
+
+  const prompt = `다음 키워드들로 최근 ${periodLabel} 이내 eCommerce Personalization 관련 실제 뉴스 기사 ${count}개를 웹에서 검색하여 수집해주세요.
+
+검색 키워드: ${allKwLabels.join(", ")}
+언어: ${langLabel}
+
+각 기사에 대해 다음 JSON 형식으로만 응답하세요 (마크다운 없이 순수 JSON):
+
+{
+  "summary": "전체 트렌드 종합 분석 3-4문장 (한국어로)",
+  "trends": ["트렌드키워드1", "트렌드키워드2", "트렌드키워드3", "트렌드키워드4", "트렌드키워드5"],
+  "articles": [
+    {
+      "title": "기사 제목 (원문 또는 한국어 번역)",
+      "source": "출처 매체명 (예: TechCrunch, Forbes, Retail Dive)",
+      "date": "2025년 X월 X일",
+      "summary": "기사 내용 요약 2-3문장 (한국어)",
+      "url": "실제 기사 URL (검색 결과에서 찾은 실제 URL, 없으면 null)",
+      "tags": ["태그1", "태그2", "태그3"],
+      "relevance": 95
+    }
+  ]
+}
+
+- 반드시 실제 존재하는 뉴스 기사를 기반으로 할 것
+- URL은 실제 검색된 URL만 포함 (추정 금지)
+- relevance는 키워드 관련성 점수 0-100
+- tags는 기사의 핵심 주제어 3-5개
+- 다양한 출처(매체)에서 수집`;
+
+  try {
+    setStatus("Claude 웹 검색 실행 중... (실시간 뉴스 수집)");
+
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 4000,
+        tools: [{ type: "web_search_20250305", name: "web_search" }],
+        messages: [{ role: "user", content: prompt }]
+      })
+    });
+
+    const data = await res.json();
+    const text = (data.content || [])
+      .filter(b => b.type === "text")
+      .map(b => b.text)
+      .join("");
+
+    let parsed;
+    try {
+      const clean = text.replace(/```json|```/g, "").trim();
+      const match = clean.match(/\{[\s\S]*\}/);
+      parsed = JSON.parse(match ? match[0] : clean);
+    } catch(e) {
+      throw new Error("JSON 파싱 실패: " + e.message + "\n원본: " + text.slice(0, 200));
+    }
+
+    hideStatus();
+    renderArticles(parsed);
+
+  } catch(err) {
+    hideStatus();
+    document.getElementById("results-area").innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">⚠️</div>
+        <div class="empty-title">오류 발생</div>
+        <div class="empty-sub">${err.message}</div>
+      </div>`;
+  } finally {
+    btn.disabled = false;
+  }
+}
+</script>
+</body>
+</html>
